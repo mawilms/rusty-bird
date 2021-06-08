@@ -1,3 +1,5 @@
+mod game;
+
 fn main() {
-    println!("Hello, world!");
+    game::Game::start().expect("Error while staring game");
 }

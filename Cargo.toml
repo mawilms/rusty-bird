@@ -13,3 +13,5 @@ Rusty bird is a simple flappy bird implementation
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ggez = "^0"
+nalgebra = "0"
