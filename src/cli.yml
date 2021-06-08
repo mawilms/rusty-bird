@@ -1,0 +1,19 @@
+name: rusty-bird
+version: "1.0"
+author: Kevin K. <kbknapp@gmail.com>
+about: Does awesome things
+args:
+  - config:
+      short: c
+      long: config
+      value_name: FILE
+      help: Sets a custom config file
+      takes_value: true
+  - INPUT:
+      help: Sets the input file to use
+      required: true
+      index: 1
+  - verbose:
+      short: v
+      multiple: true
+      help: Sets the level of verbosity
