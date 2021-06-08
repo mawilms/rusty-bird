@@ -1,0 +1,15 @@
+[package]
+name = "rusty-bird"
+version = "0.0.1"
+authors = ["Marius Wilms <info@mariuswilms.dev>"]
+edition = "2018"
+license = "GPL-3.0-only"
+readme = "README.md"
+repository = "https://github.com/mawilms/rusty-bird"
+description = """
+Rusty bird is a simple flappy bird implementation
+"""
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
