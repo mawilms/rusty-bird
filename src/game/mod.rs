@@ -9,7 +9,7 @@ use ggez::{
     Context, ContextBuilder, GameResult,
 };
 use rand::Rng;
-use std::{collections::VecDeque, env};
+use std::collections::VecDeque;
 
 const FRAMERATE: u32 = 60;
 const TUBE_STEP_SIZE: f32 = 250.;
