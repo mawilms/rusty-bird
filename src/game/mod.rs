@@ -84,9 +84,7 @@ impl EventHandler for Game {
             let position_binary = format!(
                 "Player position: x:{} y:{}
                 Pipes: {:?}",
-                self.player.rect.x.clone(),
-                self.player.rect.y.clone(),
-                coordinates.clone()
+                self.player.rect.x, self.player.rect.y, coordinates
             )
             .to_string()
             .as_bytes()
