@@ -17,3 +17,5 @@ ggez = "^0"
 glam = { version = "^0", features = ["mint"]}
 mint = "^0"
 rand = "^0"
+rust-embed = "^5"
+image = "^0"

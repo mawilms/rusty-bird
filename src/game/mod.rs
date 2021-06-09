@@ -1,3 +1,6 @@
+mod pipe;
+mod player;
+
 use ggez::{
     conf::{self, WindowMode, WindowSetup},
     event::{self, EventHandler, KeyCode, KeyMods},
@@ -13,21 +16,9 @@ const TUBE_STEP_SIZE: f32 = 250.;
 const GRAVITY: f32 = -0.2;
 const FLAPPING: f32 = 5.;
 
-pub struct Player {
-    rect: Rect,
-    assets: Vec<Image>,
-}
-
-pub struct Tube {
-    rect: Rect,
-    asset_up: Image,
-    asset_down: Image,
-    passed: bool,
-}
-
 pub struct Game {
-    player: Player,
-    tubes: VecDeque<(Tube, Tube)>,
+    player: player::Player,
+    tubes: VecDeque<(pipe::Pipe, pipe::Pipe)>,
     score: i32,
     background: Image,
     vertical_speed: f32,
@@ -69,28 +60,16 @@ impl EventHandler for Game {
                 let y_position = rng.gen_range(200..400) as f32;
                 self.tubes.pop_front();
                 self.tubes.push_back((
-                    Tube {
-                        rect: Rect::new(
-                            self.tubes.back().unwrap().0.rect.x + TUBE_STEP_SIZE,
-                            y_position,
-                            52.,
-                            320.,
-                        ),
-                        asset_up: Image::new(ctx, "/pipe-green-up.png")?,
-                        asset_down: Image::new(ctx, "/pipe-green-down.png")?,
-                        passed: false,
-                    },
-                    Tube {
-                        rect: Rect::new(
-                            self.tubes.back().unwrap().0.rect.x + TUBE_STEP_SIZE,
-                            y_position - 450.,
-                            52.,
-                            320.,
-                        ),
-                        asset_up: Image::new(ctx, "/pipe-green-up.png")?,
-                        asset_down: Image::new(ctx, "/pipe-green-down.png")?,
-                        passed: false,
-                    },
+                    pipe::Pipe::new(
+                        ctx,
+                        self.tubes.back().unwrap().0.rect.x + TUBE_STEP_SIZE,
+                        y_position,
+                    ),
+                    pipe::Pipe::new(
+                        ctx,
+                        self.tubes.back().unwrap().0.rect.x + TUBE_STEP_SIZE,
+                        y_position - 450.,
+                    ),
                 ));
             }
         }
@@ -156,12 +135,13 @@ impl EventHandler for Game {
 
 impl Game {
     pub fn start() -> GameResult {
+        let background_img =
+            image::load_from_memory(include_bytes!("./assets/background-night.png"))
+                .expect("loading icon")
+                .to_rgba8();
+        let (bg_width, bg_height) = background_img.dimensions();
+
         let mut rng = rand::thread_rng();
-        let resource_path = env::current_dir()
-            .unwrap()
-            .join("src")
-            .join("game")
-            .join("assets");
 
         let mut config = conf::Conf::new();
         config.window_mode = WindowMode::default().dimensions(864., 512.);
@@ -169,7 +149,6 @@ impl Game {
 
         let (ref mut ctx, ref mut event_loop) = ContextBuilder::new("Rusty Bird", "Marius Wilms")
             .conf(config)
-            .add_resource_path(resource_path)
             .build()?;
 
         let mut tubes = VecDeque::new();
@@ -177,34 +156,17 @@ impl Game {
         for _ in 0..7 {
             let y_position = rng.gen_range(200..400) as f32;
             tubes.push_back((
-                Tube {
-                    rect: Rect::new(x_initial_range, y_position, 52., 320.),
-                    asset_up: Image::new(ctx, "/pipe-green-up.png")?,
-                    asset_down: Image::new(ctx, "/pipe-green-down.png")?,
-                    passed: false,
-                },
-                Tube {
-                    rect: Rect::new(x_initial_range, y_position - 450., 52., 320.),
-                    asset_up: Image::new(ctx, "/pipe-green-up.png")?,
-                    asset_down: Image::new(ctx, "/pipe-green-down.png")?,
-                    passed: false,
-                },
+                pipe::Pipe::new(ctx, x_initial_range, y_position),
+                pipe::Pipe::new(ctx, x_initial_range, y_position - 450.),
             ));
             x_initial_range += TUBE_STEP_SIZE;
         }
 
         let state = &mut Game {
-            player: Player {
-                rect: Rect::new(50., 100., 34., 24.),
-                assets: vec![
-                    Image::new(ctx, "/bluebird-upflap.png")?,
-                    Image::new(ctx, "/bluebird-midflap.png")?,
-                    Image::new(ctx, "/bluebird-downflap.png")?,
-                ],
-            },
+            player: player::Player::new(ctx),
             tubes,
             score: 0,
-            background: Image::new(ctx, "/background-night.png")?,
+            background: Image::from_rgba8(ctx, bg_width as u16, bg_height as u16, &background_img)?,
             vertical_speed: 0.,
         };
 
@@ -218,22 +180,8 @@ impl Game {
         for _ in 0..7 {
             let y_position = rng.gen_range(200..400) as f32;
             self.tubes.push_back((
-                Tube {
-                    rect: Rect::new(x_initial_range, y_position, 52., 320.),
-                    asset_up: Image::new(ctx, "/pipe-green-up.png")
-                        .expect("Error while parsing image"),
-                    asset_down: Image::new(ctx, "/pipe-green-down.png")
-                        .expect("Error while parsing image"),
-                    passed: false,
-                },
-                Tube {
-                    rect: Rect::new(x_initial_range, y_position - 450., 52., 320.),
-                    asset_up: Image::new(ctx, "/pipe-green-up.png")
-                        .expect("Error while parsing image"),
-                    asset_down: Image::new(ctx, "/pipe-green-down.png")
-                        .expect("Error while parsing image"),
-                    passed: false,
-                },
+                pipe::Pipe::new(ctx, x_initial_range, y_position),
+                pipe::Pipe::new(ctx, x_initial_range, y_position - 450.),
             ));
             x_initial_range += TUBE_STEP_SIZE;
         }
