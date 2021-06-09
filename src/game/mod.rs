@@ -1,12 +1,12 @@
 use ggez::{
     conf::{self, WindowMode, WindowSetup},
     event::{self, EventHandler, KeyCode, KeyMods},
-    graphics::{clear, draw, present, Color, DrawParam, Image, Rect},
+    graphics::{clear, draw, present, Color, DrawParam, Image, Rect, Text, WHITE},
     timer::{self},
     Context, ContextBuilder, GameResult,
 };
 use rand::Rng;
-use std::env;
+use std::{collections::VecDeque, env};
 
 const FRAMERATE: u32 = 60;
 const TUBE_STEP_SIZE: f32 = 250.;
@@ -27,7 +27,7 @@ pub struct Tube {
 
 pub struct Game {
     player: Player,
-    tubes: Vec<(Tube, Tube)>,
+    tubes: VecDeque<(Tube, Tube)>,
     score: u16,
     background: Image,
     vertical_speed: f32,
@@ -67,11 +67,11 @@ impl EventHandler for Game {
             if self.tubes[0].0.rect.x <= -52. {
                 let mut rng = rand::thread_rng();
                 let y_position = rng.gen_range(200., 400.);
-                self.tubes.remove(0);
-                self.tubes.push((
+                self.tubes.pop_front();
+                self.tubes.push_back((
                     Tube {
                         rect: Rect::new(
-                            self.tubes.last().unwrap().0.rect.x + TUBE_STEP_SIZE,
+                            self.tubes.back().unwrap().0.rect.x + TUBE_STEP_SIZE,
                             y_position,
                             52.,
                             320.,
@@ -82,7 +82,7 @@ impl EventHandler for Game {
                     },
                     Tube {
                         rect: Rect::new(
-                            self.tubes.last().unwrap().0.rect.x + TUBE_STEP_SIZE,
+                            self.tubes.back().unwrap().0.rect.x + TUBE_STEP_SIZE,
                             y_position - 450.,
                             52.,
                             320.,
@@ -136,6 +136,13 @@ impl EventHandler for Game {
 
         draw(ctx, &self.player.assets[0], player_draw_param).expect("Error while drawing player");
 
+        let fps = timer::fps(ctx);
+        let fps_display = Text::new(format!("FPS: {}", fps));
+        draw(ctx, &fps_display, (glam::Vec2::new(0.0, 10.0), WHITE))?;
+
+        let score_display = Text::new(format!("Score: {}", self.score - 1));
+        draw(ctx, &score_display, (glam::Vec2::new(432., 10.0), WHITE))?;
+
         present(ctx).expect("Error while presenting");
         Ok(())
     }
@@ -165,11 +172,11 @@ impl Game {
             .add_resource_path(resource_path)
             .build()?;
 
-        let mut tubes = vec![];
+        let mut tubes = VecDeque::new();
         let mut x_initial_range = rng.gen_range(600., 650.);
         for _ in 0..7 {
             let y_position = rng.gen_range(200., 400.);
-            tubes.push((
+            tubes.push_back((
                 Tube {
                     rect: Rect::new(x_initial_range, y_position, 52., 320.),
                     asset_up: Image::new(ctx, "/pipe-green-up.png")?,
@@ -210,7 +217,7 @@ impl Game {
         self.tubes.clear();
         for _ in 0..7 {
             let y_position = rng.gen_range(200., 400.);
-            self.tubes.push((
+            self.tubes.push_back((
                 Tube {
                     rect: Rect::new(x_initial_range, y_position, 52., 320.),
                     asset_up: Image::new(ctx, "/pipe-green-up.png")
