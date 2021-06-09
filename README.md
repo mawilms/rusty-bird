@@ -2,7 +2,7 @@
 
 # Rusty Bird
 
-![Github testing](https://github.com/mawilms/rusty-bird/actions/workflows/testing.yml/badge.svg)
+![Github testing](https://github.com/mawilms/rusty-bird/actions/workflows/build.yml/badge.svg)
 ![GitHub issues](https://img.shields.io/github/issues/mawilms/rusty-bird)
 ![GitHub Latest version](https://img.shields.io/github/v/release/mawilms/rusty-bird?include_prereleases)
 
