@@ -12,6 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install dependencies
-        run: apt install -y librust-alsa-sys-dev
+        run: sudo apt install -y librust-alsa-sys-dev
       - name: Build
         run: cargo build
