@@ -81,17 +81,18 @@ impl EventHandler for Game {
                 ));
             }
 
-            // let bla = format!(
-            //     "Player position: x:{} y:{}
-            //     Pipes: {:?}",
-            //     self.player.rect.x.clone(),
-            //     self.player.rect.y.clone(),
-            //     coordinates.clone()
-            // )
-            // .to_string()
-            // .as_bytes();
+            let position_binary = format!(
+                "Player position: x:{} y:{}
+                Pipes: {:?}",
+                self.player.rect.x.clone(),
+                self.player.rect.y.clone(),
+                coordinates.clone()
+            )
+            .to_string()
+            .as_bytes()
+            .to_owned();
 
-            // self.tcp_client.write_all(bla.clone()).unwrap();
+            self.tcp_client.write_all(&position_binary).unwrap();
         }
         Ok(())
     }
