@@ -9,7 +9,7 @@ use ggez::{
     Context, ContextBuilder, GameResult,
 };
 use rand::Rng;
-use std::collections::VecDeque;
+use std::{collections::VecDeque, io::Write, net::TcpStream};
 
 const FRAMERATE: u32 = 60;
 const TUBE_STEP_SIZE: f32 = 250.;
@@ -18,10 +18,11 @@ const FLAPPING: f32 = 5.;
 
 pub struct Game {
     player: player::Player,
-    tubes: VecDeque<(pipe::Pipe, pipe::Pipe)>,
+    pipes: VecDeque<(pipe::Pipe, pipe::Pipe)>,
     score: i32,
     background: Image,
     vertical_speed: f32,
+    tcp_client: TcpStream,
 }
 
 impl EventHandler for Game {
@@ -36,42 +37,60 @@ impl EventHandler for Game {
             }
 
             // Tube movement
-            for tube in &mut self.tubes {
+            for tube in &mut self.pipes {
                 tube.0.rect.x -= 3.;
                 tube.1.rect.x -= 3.;
             }
 
             // Scoring
-            if self.player.rect.x <= self.tubes[0].0.rect.x && !self.tubes[0].0.passed {
-                self.tubes[0].0.passed = true;
+            if self.player.rect.x <= self.pipes[0].0.rect.x && !self.pipes[0].0.passed {
+                self.pipes[0].0.passed = true;
                 self.score += 1; // TODO: Currently bugged because the first tube is always in front of the bird. Therefore the game starts at score 1 and the first tube is set to passed=true
             }
 
             // Collision detection
-            if self.player.rect.overlaps(&self.tubes[0].0.rect)
-                || self.player.rect.overlaps(&self.tubes[0].1.rect)
+            if self.player.rect.overlaps(&self.pipes[0].0.rect)
+                || self.player.rect.overlaps(&self.pipes[0].1.rect)
             {
                 self.restart_game(ctx);
             }
 
             // Delete pipes that are out of view
-            if self.tubes[0].0.rect.x <= -52. {
+            if self.pipes[0].0.rect.x <= -52. {
                 let mut rng = rand::thread_rng();
                 let y_position = rng.gen_range(200..400) as f32;
-                self.tubes.pop_front();
-                self.tubes.push_back((
+                self.pipes.pop_front();
+                self.pipes.push_back((
                     pipe::Pipe::new(
                         ctx,
-                        self.tubes.back().unwrap().0.rect.x + TUBE_STEP_SIZE,
+                        self.pipes.back().unwrap().0.rect.x + TUBE_STEP_SIZE,
                         y_position,
                     ),
                     pipe::Pipe::new(
                         ctx,
-                        self.tubes.back().unwrap().0.rect.x + TUBE_STEP_SIZE,
+                        self.pipes.back().unwrap().0.rect.x + TUBE_STEP_SIZE,
                         y_position - 450.,
                     ),
                 ));
             }
+            let mut coordinates = vec![];
+            for (lower_pipe, upper_pipe) in &self.pipes {
+                coordinates.push((
+                    (lower_pipe.rect.x, lower_pipe.rect.y),
+                    (upper_pipe.rect.x, upper_pipe.rect.y),
+                ));
+            }
+
+            let position_binary = format!(
+                "Player position: x:{} y:{}
+                Pipes: {:?}",
+                self.player.rect.x, self.player.rect.y, coordinates
+            )
+            .to_string()
+            .as_bytes()
+            .to_owned();
+
+            self.tcp_client.write_all(&position_binary).unwrap();
         }
         Ok(())
     }
@@ -95,7 +114,7 @@ impl EventHandler for Game {
             DrawParam::default().dest(glam::Vec2::new(576., 0.)),
         )?;
 
-        for tube in &self.tubes {
+        for tube in &self.pipes {
             draw(
                 ctx,
                 &tube.1.asset_down,
@@ -153,7 +172,7 @@ impl Game {
 
         let mut tubes = VecDeque::new();
         let mut x_initial_range = rng.gen_range(600..650) as f32;
-        for _ in 0..7 {
+        for _ in 0..5 {
             let y_position = rng.gen_range(200..400) as f32;
             tubes.push_back((
                 pipe::Pipe::new(ctx, x_initial_range, y_position),
@@ -161,10 +180,12 @@ impl Game {
             ));
             x_initial_range += TUBE_STEP_SIZE;
         }
+        let stream = TcpStream::connect("127.0.0.1:7878").unwrap();
 
         let state = &mut Game {
+            tcp_client: stream,
             player: player::Player::new(ctx),
-            tubes,
+            pipes: tubes,
             score: 0,
             background: Image::from_rgba8(ctx, bg_width as u16, bg_height as u16, &background_img)?,
             vertical_speed: 0.,
@@ -176,10 +197,10 @@ impl Game {
     fn restart_game(&mut self, ctx: &mut Context) {
         let mut rng = rand::thread_rng();
         let mut x_initial_range = rng.gen_range(600..650) as f32;
-        self.tubes.clear();
+        self.pipes.clear();
         for _ in 0..7 {
             let y_position = rng.gen_range(200..400) as f32;
-            self.tubes.push_back((
+            self.pipes.push_back((
                 pipe::Pipe::new(ctx, x_initial_range, y_position),
                 pipe::Pipe::new(ctx, x_initial_range, y_position - 450.),
             ));
