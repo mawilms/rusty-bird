@@ -14,3 +14,7 @@ Rusty bird is a simple flappy bird implementation
 
 [dependencies]
 clap = {version = "^2", features = ["yaml"]}
+ggez = "^0"
+glam = { version = "^0", features = ["mint"]}
+mint = "^0"
+rand = "^0"
