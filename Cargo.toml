@@ -1,3 +1,5 @@
+#cargo-features = ["strip"]
+
 [package]
 name = "rusty-bird"
 version = "0.0.1"
@@ -13,3 +15,15 @@ Rusty bird is a simple flappy bird implementation
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ggez = "^0"
+glam = { version = "^0", features = ["mint"]}
+mint = "^0"
+rand = "^0"
+rust-embed = "^5"
+image = "^0"
+
+[profile.release]
+opt-level = "s"
+lto = true
+#strip = "symbols"# Currently only useable for nightly --> 
+codegen-units = 1

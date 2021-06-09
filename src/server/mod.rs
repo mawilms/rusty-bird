@@ -1,20 +1,32 @@
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
 
-pub struct Server {}
+pub struct Server {
+    listener: TcpListener,
+}
 
 impl Server {
-    pub fn start_server() {
-        let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+    pub fn start_server() -> Self {
+        println!(
+            "
+Started the TCP Stream on 127.0.0.1:7878
+"
+        );
 
-        for stream in listener.incoming() {
-            let stream = stream.unwrap();
-
-            Self::handle_connection(stream)
+        Self {
+            listener: TcpListener::bind("127.0.0.1:7878").unwrap(),
         }
     }
 
-    fn handle_connection(mut stream: TcpStream) {
+    pub fn listen(&self) {
+        for stream in self.listener.incoming() {
+            let mut stream = stream.unwrap();
+
+            self.handle_connection(stream);
+        }
+    }
+
+    fn handle_connection(&self, mut stream: TcpStream) {
         let mut buffer = [0; 1024];
 
         stream.read_exact(&mut buffer).unwrap();
