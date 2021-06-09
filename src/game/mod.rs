@@ -41,7 +41,7 @@ impl EventHandler for Game {
 
             // Environmental rules like upper and lower level bounds
             if self.player.rect.top() <= 0. || self.player.rect.bottom() >= 512. {
-                println!("Raus");
+                self.restart_game(ctx);
             }
 
             // Tube movement
@@ -60,7 +60,7 @@ impl EventHandler for Game {
             if self.player.rect.overlaps(&self.tubes[0].0.rect)
                 || self.player.rect.overlaps(&self.tubes[0].1.rect)
             {
-                self.score += 1;
+                self.restart_game(ctx);
             }
 
             // Delete pipes that are out of view
@@ -202,5 +202,36 @@ impl Game {
         };
 
         event::run(ctx, event_loop, state)
+    }
+
+    fn restart_game(&mut self, ctx: &mut Context) {
+        let mut rng = rand::thread_rng();
+        let mut x_initial_range = rng.gen_range(600., 650.);
+        self.tubes.clear();
+        for _ in 0..7 {
+            let y_position = rng.gen_range(200., 400.);
+            self.tubes.push((
+                Tube {
+                    rect: Rect::new(x_initial_range, y_position, 52., 320.),
+                    asset_up: Image::new(ctx, "/pipe-green-up.png")
+                        .expect("Error while parsing image"),
+                    asset_down: Image::new(ctx, "/pipe-green-down.png")
+                        .expect("Error while parsing image"),
+                    passed: false,
+                },
+                Tube {
+                    rect: Rect::new(x_initial_range, y_position - 450., 52., 320.),
+                    asset_up: Image::new(ctx, "/pipe-green-up.png")
+                        .expect("Error while parsing image"),
+                    asset_down: Image::new(ctx, "/pipe-green-down.png")
+                        .expect("Error while parsing image"),
+                    passed: false,
+                },
+            ));
+            x_initial_range += TUBE_STEP_SIZE;
+        }
+
+        self.player.rect = Rect::new(50., 100., 34., 24.);
+        self.score = 0;
     }
 }
