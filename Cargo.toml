@@ -15,3 +15,4 @@ Rusty bird is a simple flappy bird implementation
 [dependencies]
 ggez = "^0"
 nalgebra = "0"
+rand = "0"

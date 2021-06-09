@@ -2,17 +2,22 @@ use ggez::{
     conf::{self, WindowMode, WindowSetup},
     event::{self, EventHandler, KeyCode, KeyMods},
     graphics::{clear, draw, present, Color, DrawParam, Image},
-    timer, Context, ContextBuilder, GameResult,
+    timer::{self},
+    Context, ContextBuilder, GameResult,
 };
+use rand::Rng;
 use std::env;
+
+const FRAMERATE: u32 = 60;
+const TUBE_STEP_SIZE: f32 = 250.;
+const GRAVITY: f32 = -0.2;
+const FLAPPING: f32 = 5.;
 
 pub struct Player {
     x: f32,
     y: f32,
-    velocity: f32,
-    asset_one: Image,
-    asset_two: Image,
-    asset_three: Image,
+    is_flapping: bool,
+    assets: Vec<Image>,
 }
 
 pub struct Tube {
@@ -20,27 +25,47 @@ pub struct Tube {
     y: f32,
     asset_up: Image,
     asset_down: Image,
+    passed: bool,
 }
 
 pub struct Game {
     player: Player,
     tubes: Vec<Tube>,
     score: u16,
-    framerate: std::time::Duration,
     background: Image,
+    vertical_speed: f32,
 }
 
 impl EventHandler for Game {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        self.framerate = timer::delta(ctx);
-        self.player.y += self.player.velocity;
+        while timer::check_update_time(ctx, FRAMERATE) {
+            self.vertical_speed += GRAVITY;
+            self.player.y -= self.vertical_speed;
 
-        for tube in &mut self.tubes {
-            tube.x -= 3.;
+            for tube in &mut self.tubes {
+                tube.x -= 3.;
+            }
+
+            if self.player.x <= self.tubes[0].x && !self.tubes[0].passed {
+                self.tubes[0].passed = true;
+                self.score += 1; // TODO: Currently bugged because the first tube is always in front of the bird. Therefore the game starts at score 1 and the first tube is set to passed=true
+            }
+
+            if self.tubes[0].x <= -52. {
+                let mut rng = rand::thread_rng();
+                self.tubes.remove(0);
+                self.tubes.push(Tube {
+                    x: self.tubes.last().unwrap().x + TUBE_STEP_SIZE,
+                    y: rng.gen_range(200., 400.),
+                    asset_up: Image::new(ctx, "/pipe-green-up.png")?,
+                    asset_down: Image::new(ctx, "/pipe-green-down.png")?,
+                    passed: false,
+                })
+            }
         }
-
         Ok(())
     }
+
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         clear(ctx, Color::new(0., 0., 0., 1.));
 
@@ -64,7 +89,7 @@ impl EventHandler for Game {
             draw(
                 ctx,
                 &tube.asset_down,
-                DrawParam::default().dest(nalgebra::Point2::new(tube.x, -200.)),
+                DrawParam::default().dest(nalgebra::Point2::new(tube.x, tube.y - 450.)),
             )
             .expect("Error while drawing tubes");
             draw(
@@ -77,7 +102,8 @@ impl EventHandler for Game {
 
         let player_draw_param =
             DrawParam::new().dest(nalgebra::Point2::new(self.player.x, self.player.y));
-        draw(ctx, &self.player.asset_one, player_draw_param).expect("Error while drawing player");
+
+        draw(ctx, &self.player.assets[0], player_draw_param).expect("Error while drawing player");
 
         present(ctx).expect("Error while presenting");
         Ok(())
@@ -85,13 +111,15 @@ impl EventHandler for Game {
 
     fn key_up_event(&mut self, _ctx: &mut Context, keycode: KeyCode, _keymods: KeyMods) {
         if keycode == KeyCode::Space {
-            self.player.y -= 100.;
+            self.player.is_flapping = true;
+            self.vertical_speed = FLAPPING;
         }
     }
 }
 
 impl Game {
     pub fn start() -> GameResult {
+        let mut rng = rand::thread_rng();
         let resource_path = env::current_dir()
             .unwrap()
             .join("src")
@@ -107,26 +135,34 @@ impl Game {
             .add_resource_path(resource_path)
             .build()?;
 
-        let tubes = vec![Tube {
-            x: 650.,
-            y: 200.,
-            asset_up: Image::new(ctx, "/pipe-green-up.png")?,
-            asset_down: Image::new(ctx, "/pipe-green-down.png")?,
-        }];
+        let mut tubes = vec![];
+        let mut x_initial_range = rng.gen_range(600., 650.);
+        for _ in 0..7 {
+            tubes.push(Tube {
+                x: x_initial_range,
+                y: rng.gen_range(200., 400.),
+                asset_up: Image::new(ctx, "/pipe-green-up.png")?,
+                asset_down: Image::new(ctx, "/pipe-green-down.png")?,
+                passed: false,
+            });
+            x_initial_range += TUBE_STEP_SIZE;
+        }
 
         let state = &mut Game {
             player: Player {
                 x: 50.,
-                y: 300.,
-                velocity: 2.,
-                asset_one: Image::new(ctx, "/bluebird-upflap.png")?,
-                asset_two: Image::new(ctx, "/bluebird-midflap.png")?,
-                asset_three: Image::new(ctx, "/bluebird-downflap.png")?,
+                y: 100.,
+                is_flapping: false,
+                assets: vec![
+                    Image::new(ctx, "/bluebird-upflap.png")?,
+                    Image::new(ctx, "/bluebird-midflap.png")?,
+                    Image::new(ctx, "/bluebird-downflap.png")?,
+                ],
             },
             tubes,
             score: 0,
-            framerate: std::time::Duration::new(0, 0),
             background: Image::new(ctx, "/background-night.png")?,
+            vertical_speed: 0.,
         };
 
         event::run(ctx, event_loop, state)

@@ -1790,6 +1790,7 @@ version = "0.0.1"
 dependencies = [
  "ggez",
  "nalgebra",
+ "rand 0.6.5",
 ]
 
 [[package]]
