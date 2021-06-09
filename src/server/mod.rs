@@ -1,5 +1,6 @@
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
+use std::str;
 
 pub struct Server;
 
@@ -14,21 +15,23 @@ Started the TCP Stream on 127.0.0.1:7878
         let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
         for stream in listener.incoming() {
-            let stream = stream.unwrap();
-
-            Self::handle_connection(stream);
+            Self::handle_connection(stream.unwrap());
         }
     }
 
     fn handle_connection(mut stream: TcpStream) {
-        let mut buffer = [0; 1024];
+        loop {
+            let mut buffer = vec![0; 2048];
 
-        stream.read_exact(&mut buffer).unwrap();
+            let amt = stream.read(&mut buffer).unwrap();
+            let result = &buffer[..amt];
 
-        let response = "HTTP/1.1 200 OK\r\n\r\n";
-        println!("Nachricht kam an");
+            let bla = str::from_utf8(&result).unwrap();
+            println!("{}", bla);
 
-        stream.write_all(response.as_bytes()).unwrap();
-        stream.flush().unwrap();
+            let response = "HTTP/1.1 200 OK\r\n\r\n";
+
+            stream.write_all(response.as_bytes()).unwrap();
+        }
     }
 }
