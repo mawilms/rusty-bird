@@ -4,7 +4,6 @@
 
 ![Github testing](https://github.com/mawilms/rusty-bird/actions/workflows/testing.yml/badge.svg)
 ![GitHub issues](https://img.shields.io/github/issues/mawilms/rusty-bird)
-![GitHub downloads](https://img.shields.io/github/downloads/mawilms/rusty-bird/total)
 ![GitHub Latest version](https://img.shields.io/github/v/release/mawilms/rusty-bird?include_prereleases)
 
 </div>
