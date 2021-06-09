@@ -42,4 +42,4 @@ Definitely! This project is a great learning experience for me. There are alread
 
 ## License
 
-Rusty Bird is release under the [GNU GPLv3](https://github.com/mawilms/lembas/blob/main/LICENSE)
+Rusty Bird is release under the [GNU GPLv3](https://github.com/mawilms/rusty-bird/blob/main/LICENSE)
