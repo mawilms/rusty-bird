@@ -2,11 +2,20 @@
 #![allow(clippy::cast_precision_loss)]
 mod game;
 
-use clap::{load_yaml, App};
+use std::env;
 
 fn main() {
-    // The YAML file is found relative to the current file, similar to how modules are found
-    let yaml = load_yaml!("cli.yml");
-    let matches = App::from_yaml(yaml).get_matches();
-    game::Game::start().expect("Error while staring game");
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 2 {
+        println!(
+            "
+Rusty-bird by Marius Wilms <info@mariuswilms.dev>
+
+Use one of these flags:
+
+start -> Start the game"
+        )
+    } else if args[1].to_lowercase() == "start" {
+        game::Game::start().expect("Error while staring game");
+    }
 }

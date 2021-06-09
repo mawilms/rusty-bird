@@ -13,7 +13,6 @@ Rusty bird is a simple flappy bird implementation
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = {version = "^2", features = ["yaml"]}
 ggez = "^0"
 glam = { version = "^0", features = ["mint"]}
 mint = "^0"

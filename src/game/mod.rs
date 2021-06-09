@@ -28,7 +28,7 @@ pub struct Tube {
 pub struct Game {
     player: Player,
     tubes: VecDeque<(Tube, Tube)>,
-    score: u16,
+    score: i32,
     background: Image,
     vertical_speed: f32,
 }
