@@ -1,6 +1,7 @@
 mod pipe;
 mod player;
 
+use crate::server::packet::Packet;
 use ggez::{
     conf::{self, WindowMode, WindowSetup},
     event::{self, EventHandler, KeyCode, KeyMods},
@@ -9,6 +10,7 @@ use ggez::{
     Context, ContextBuilder, GameResult,
 };
 use rand::Rng;
+use serde_json;
 use std::{collections::VecDeque, io::Write, net::TcpStream};
 
 const FRAMERATE: u32 = 60;
@@ -81,16 +83,19 @@ impl EventHandler for Game {
                 ));
             }
 
-            let position_binary = format!(
-                "Player position: x:{} y:{}
-                Pipes: {:?}",
-                self.player.rect.x, self.player.rect.y, coordinates
-            )
-            .to_string()
-            .as_bytes()
-            .to_owned();
+            let packet = Packet::new(
+                (self.player.rect.x, self.player.rect.y),
+                self.score - 1,
+                coordinates,
+            );
 
-            self.tcp_client.write_all(&position_binary).unwrap();
+            let packet_string = serde_json::to_string(&packet)
+                .unwrap()
+                .to_string()
+                .as_bytes()
+                .to_owned();
+
+            self.tcp_client.write_all(&packet_string).unwrap();
         }
         Ok(())
     }
