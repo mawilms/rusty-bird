@@ -35,6 +35,56 @@ You can start the game with `rusty-bird start`.
 
 ## FAQ
 
+### **_How does the state information look like?_**
+
+The state is send as a JSON struct. It contains the `y-position` of the Player, the `score` and the distance of the first three pipe obstacles and the player.
+
+This is how the schema is looking:
+
+```json
+{
+  "player": <player y-position>,
+  "score": <int>,
+  "pipes": [
+    [
+      [<lower x distance>, <lower y distance>],
+      [<upper x distance>, <upper y distance>]
+    ],
+    [
+      [<lower x distance>, <lower y distance>],
+      [<upper x distance>, <upper y distance>]
+    ],
+    [
+      [<lower x distance>, <lower y distance>],
+      [<upper x distance>, <upper y distance>]
+    ]
+  ]
+}
+```
+
+This is example data:
+
+```json
+{
+  "player": 103.79996,
+  "score": 0,
+  "pipes": [
+    [
+      [168.0, 267.20004],
+      [168.0, -182.79996]
+    ],
+    [
+      [418.0, 98.20004],
+      [418.0, -351.79996]
+    ],
+    [
+      [668.0, 111.20004],
+      [668.0, -338.79996]
+    ]
+  ]
+}
+```
+
 ### **_Will you add new features to Rusty Bird?_**
 
 Definitely! This project is a great learning experience for me. There are already a few features planned to make the development for your agents easier. Since I'm not a data scientist, I need your help! :blush:

@@ -10,7 +10,6 @@ use ggez::{
     Context, ContextBuilder, GameResult,
 };
 use rand::Rng;
-use serde_json;
 use std::{collections::VecDeque, io::Write, net::TcpStream};
 
 const FRAMERATE: u32 = 60;
@@ -76,18 +75,20 @@ impl EventHandler for Game {
                 ));
             }
             let mut coordinates = vec![];
-            for (lower_pipe, upper_pipe) in &self.pipes {
+            for index in 0..3 {
                 coordinates.push((
-                    (lower_pipe.rect.x, lower_pipe.rect.y),
-                    (upper_pipe.rect.x, upper_pipe.rect.y),
-                ));
+                    (
+                        self.pipes[index].0.rect.x - self.player.rect.x,
+                        self.pipes[index].0.rect.y - self.player.rect.y,
+                    ),
+                    (
+                        self.pipes[index].1.rect.x - self.player.rect.x,
+                        self.pipes[index].1.rect.y - self.player.rect.y,
+                    ),
+                ))
             }
 
-            let packet = Packet::new(
-                (self.player.rect.x, self.player.rect.y),
-                self.score - 1,
-                coordinates,
-            );
+            let packet = Packet::new(self.player.rect.y, self.score - 1, coordinates);
 
             let packet_string = serde_json::to_string(&packet)
                 .unwrap()
