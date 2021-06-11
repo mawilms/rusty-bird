@@ -11,15 +11,15 @@ pub struct Player {
 impl Player {
     pub fn new(ctx: &mut Context) -> Self {
         let player_up_img = image::load_from_memory(include_bytes!("./assets/bluebird-upflap.png"))
-            .expect("loading icon")
+            .expect("Error while parsing image")
             .to_rgba8();
         let player_mid_img =
             image::load_from_memory(include_bytes!("./assets/bluebird-midflap.png"))
-                .expect("loading icon")
+                .expect("Error while parsing image")
                 .to_rgba8();
         let player_down_img =
             image::load_from_memory(include_bytes!("./assets/bluebird-downflap.png"))
-                .expect("loading icon")
+                .expect("Error while parsing image")
                 .to_rgba8();
         let (player_width, player_height) = player_up_img.dimensions();
 
