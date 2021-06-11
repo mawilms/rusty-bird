@@ -2,7 +2,7 @@ pub mod packet;
 
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
-use std::str;
+use std::{str, thread};
 
 pub struct Server;
 
@@ -17,7 +17,9 @@ Started the TCP Stream on 127.0.0.1:7878
         let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
         for stream in listener.incoming() {
-            Self::handle_connection(stream.unwrap());
+            thread::spawn(|| {
+                Self::handle_connection(stream.unwrap());
+            });
         }
     }
 
@@ -32,6 +34,7 @@ Started the TCP Stream on 127.0.0.1:7878
             println!("{}", bla);
 
             let response = "HTTP/1.1 200 OK\r\n\r\n";
+
 
             stream.write_all(response.as_bytes()).unwrap();
         }

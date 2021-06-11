@@ -20,6 +20,7 @@ start -> Start the game"
         thread::spawn(|| {
             server::Server::start_server();
         });
+        // server::Server::start_server();
 
         game::Game::start().expect("Error while staring game");
     }

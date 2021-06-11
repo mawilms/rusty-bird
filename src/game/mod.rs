@@ -10,6 +10,8 @@ use ggez::{
     Context, ContextBuilder, GameResult,
 };
 use rand::Rng;
+use std::io::prelude::*;
+use std::str;
 use std::{collections::VecDeque, io::Write, net::TcpStream};
 
 const FRAMERATE: u32 = 60;
@@ -29,6 +31,14 @@ pub struct Game {
 impl EventHandler for Game {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while timer::check_update_time(ctx, FRAMERATE) {
+            // let mut buffer = vec![0; 2048];
+
+            // let amt = self.tcp_client.read(&mut buffer).unwrap();
+            // let result = &buffer[..amt];
+
+            // let bla = str::from_utf8(&result).unwrap();
+            // println!("{}", bla);
+
             self.vertical_speed += GRAVITY;
             self.player.rect.y -= self.vertical_speed;
 
