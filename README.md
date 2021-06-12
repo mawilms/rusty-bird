@@ -47,7 +47,7 @@ The state is send as a JSON struct. It contains the `y-position` of the Player, 
 
 This is how the schema is looking:
 
-```json
+```text
 {
   "player": <player y-position>,
   "score": <int>,
