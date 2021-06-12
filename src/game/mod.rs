@@ -33,8 +33,8 @@ pub struct Game {
 impl EventHandler for Game {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while timer::check_update_time(ctx, FRAMERATE) {
-            let bla = self.recipient.try_recv().unwrap_or_default();
-            println!("{}", bla);
+            let command = self.recipient.try_recv().unwrap_or_default();
+            println!("{}", command);
 
             self.vertical_speed += GRAVITY;
             self.player.rect.y -= self.vertical_speed;
@@ -206,8 +206,8 @@ impl Game {
                 let amt = stream.read(&mut buffer).unwrap();
                 let result = &buffer[..amt];
 
-                let bla = str::from_utf8(&result).unwrap().to_string();
-                tx.send(bla).unwrap();
+                tx.send(str::from_utf8(&result).unwrap().to_string())
+                    .unwrap();
             }
         });
 

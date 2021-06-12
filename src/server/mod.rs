@@ -30,9 +30,9 @@ Started the TCP Stream on 127.0.0.1:7878
             let amt = stream.read(&mut buffer).unwrap();
             let result = &buffer[..amt];
 
-            let bla = str::from_utf8(&result).unwrap();
+            let data = str::from_utf8(&result).unwrap();
 
-            stream.write_all(bla.as_bytes()).unwrap();
+            stream.write_all(data.as_bytes()).unwrap();
         }
     }
 }
