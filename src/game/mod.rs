@@ -148,7 +148,17 @@ impl EventHandler for Game {
         let player_draw_param =
             DrawParam::new().dest(glam::Vec2::new(self.player.rect.x, self.player.rect.y));
 
-        draw(ctx, &self.player.assets[0], player_draw_param).expect("Error while drawing player");
+        match self.player.animation_frame {
+            0..=20 => draw(ctx, &self.player.assets[0], player_draw_param)
+                .expect("Error while drawing player"),
+            21..=40 => draw(ctx, &self.player.assets[1], player_draw_param)
+                .expect("Error while drawing player"),
+            41..=60 => draw(ctx, &self.player.assets[2], player_draw_param)
+                .expect("Error while drawing player"),
+            _ => self.player.animation_frame = 0,
+        }
+
+        self.player.animation_frame += 1;
 
         let fps = timer::fps(ctx);
         let fps_display = Text::new(format!("FPS: {}", fps));
