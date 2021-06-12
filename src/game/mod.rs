@@ -198,7 +198,7 @@ impl Game {
         let (tx, rx) = mpsc::channel();
 
         thread::spawn(move || {
-            let mut stream = TcpStream::connect("127.0.0.1:7878").unwrap();
+            let mut stream = TcpStream::connect("127.0.0.1:7978").unwrap();
 
             loop {
                 let mut buffer = vec![0; 2048];
