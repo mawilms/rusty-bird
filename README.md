@@ -31,7 +31,13 @@ You should definitely try Elixir! :eyes:
 
 Rust bird is a CLI application which starts the flappy bird game. Currently the only thing you need is the executable and Rust installed.
 
+For precompiled versions:
+
 You can start the game with `rusty-bird start`.
+
+To run the app from source:
+
+Clone the repo and execute the crate with `cargo run -- start` or build your own executable with `cargo build`
 
 ## FAQ
 
