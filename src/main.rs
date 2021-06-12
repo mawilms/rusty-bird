@@ -5,6 +5,8 @@ mod server;
 
 use std::{env, thread};
 
+use server::Server;
+
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 2 {
@@ -18,8 +20,10 @@ start -> Start the game"
         );
     } else if args[1].to_lowercase() == "start" {
         thread::spawn(|| {
-            server::Server::start_server();
+            let mut server = Server::new();
+            server.start_server();
         });
+        // server::Server::start_server();
 
         game::Game::start().expect("Error while staring game");
     }

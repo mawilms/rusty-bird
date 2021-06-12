@@ -10,7 +10,8 @@ use ggez::{
     Context, ContextBuilder, GameResult,
 };
 use rand::Rng;
-use serde_json;
+use std::io::prelude::*;
+use std::str;
 use std::{collections::VecDeque, io::Write, net::TcpStream};
 
 const FRAMERATE: u32 = 60;
@@ -30,6 +31,14 @@ pub struct Game {
 impl EventHandler for Game {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while timer::check_update_time(ctx, FRAMERATE) {
+            // let mut buffer = vec![0; 2048];
+
+            // let amt = self.tcp_client.read(&mut buffer).unwrap();
+            // let result = &buffer[..amt];
+
+            // let bla = str::from_utf8(&result).unwrap();
+            // println!("{}", bla);
+
             self.vertical_speed += GRAVITY;
             self.player.rect.y -= self.vertical_speed;
 
@@ -76,18 +85,20 @@ impl EventHandler for Game {
                 ));
             }
             let mut coordinates = vec![];
-            for (lower_pipe, upper_pipe) in &self.pipes {
+            for index in 0..3 {
                 coordinates.push((
-                    (lower_pipe.rect.x, lower_pipe.rect.y),
-                    (upper_pipe.rect.x, upper_pipe.rect.y),
-                ));
+                    (
+                        self.pipes[index].0.rect.x - self.player.rect.x,
+                        self.pipes[index].0.rect.y - self.player.rect.y,
+                    ),
+                    (
+                        self.pipes[index].1.rect.x - self.player.rect.x,
+                        self.pipes[index].1.rect.y - self.player.rect.y,
+                    ),
+                ))
             }
 
-            let packet = Packet::new(
-                (self.player.rect.x, self.player.rect.y),
-                self.score - 1,
-                coordinates,
-            );
+            let packet = Packet::new(self.player.rect.y, self.score - 1, coordinates);
 
             let packet_string = serde_json::to_string(&packet)
                 .unwrap()
