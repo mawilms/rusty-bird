@@ -19,12 +19,12 @@ Use one of these flags:
 start -> Start the game"
         );
     } else if args[1].to_lowercase() == "start" {
-        thread::spawn(|| {
-            let mut server = Server::new();
-            server.start_server();
+        let handle = thread::spawn(|| {
+            Server::start_server();
         });
         // server::Server::start_server();
 
         game::Game::start().expect("Error while staring game");
+        handle.join().unwrap();
     }
 }

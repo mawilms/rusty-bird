@@ -10,9 +10,10 @@ use ggez::{
     Context, ContextBuilder, GameResult,
 };
 use rand::Rng;
-use std::io::prelude::*;
-use std::str;
+use std::sync::mpsc;
 use std::{collections::VecDeque, io::Write, net::TcpStream};
+use std::{io::prelude::*, sync::mpsc::Receiver};
+use std::{str, thread};
 
 const FRAMERATE: u32 = 60;
 const TUBE_STEP_SIZE: f32 = 250.;
@@ -26,18 +27,14 @@ pub struct Game {
     background: Image,
     vertical_speed: f32,
     tcp_client: TcpStream,
+    recipient: Receiver<String>,
 }
 
 impl EventHandler for Game {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while timer::check_update_time(ctx, FRAMERATE) {
-            // let mut buffer = vec![0; 2048];
-
-            // let amt = self.tcp_client.read(&mut buffer).unwrap();
-            // let result = &buffer[..amt];
-
-            // let bla = str::from_utf8(&result).unwrap();
-            // println!("{}", bla);
+            let bla = self.recipient.try_recv().unwrap_or_default();
+            println!("{}", bla);
 
             self.vertical_speed += GRAVITY;
             self.player.rect.y -= self.vertical_speed;
@@ -56,7 +53,7 @@ impl EventHandler for Game {
             // Scoring
             if self.player.rect.x <= self.pipes[0].0.rect.x && !self.pipes[0].0.passed {
                 self.pipes[0].0.passed = true;
-                self.score += 1; // TODO: Currently bugged because the first tube is always in front of the bird. Therefore the game starts at score 1 and the first tube is set to passed=true
+                self.score += 1;
             }
 
             // Collision detection
@@ -198,7 +195,24 @@ impl Game {
         }
         let stream = TcpStream::connect("127.0.0.1:7878").unwrap();
 
+        let (tx, rx) = mpsc::channel();
+
+        thread::spawn(move || {
+            let mut stream = TcpStream::connect("127.0.0.1:7878").unwrap();
+
+            loop {
+                let mut buffer = vec![0; 2048];
+
+                let amt = stream.read(&mut buffer).unwrap();
+                let result = &buffer[..amt];
+
+                let bla = str::from_utf8(&result).unwrap().to_string();
+                tx.send(bla).unwrap();
+            }
+        });
+
         let state = &mut Game {
+            recipient: rx,
             tcp_client: stream,
             player: player::Player::new(ctx),
             pipes: tubes,

@@ -1,21 +1,13 @@
 pub mod packet;
 
 use std::io::prelude::*;
-use std::net::{SocketAddr, TcpListener, TcpStream};
+use std::net::{TcpListener, TcpStream};
 use std::{str, thread};
 
-pub struct Server {
-    participants: Vec<SocketAddr>,
-}
+pub struct Server;
 
 impl Server {
-    pub fn new() -> Self {
-        Server {
-            participants: Vec::new(),
-        }
-    }
-
-    pub fn start_server(&mut self) {
+    pub fn start_server() {
         println!(
             "
 Started the TCP Stream on 127.0.0.1:7878
@@ -25,23 +17,9 @@ Started the TCP Stream on 127.0.0.1:7878
         let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
 
         for stream in listener.incoming() {
-            match stream {
-                Ok(stream) => {
-                    self.participants.push(stream.peer_addr().unwrap());
-                    if stream.peer_addr().unwrap() == self.participants[0] {
-                        // Game Client
-                        thread::spawn(|| {
-                            Self::handle_connection(stream);
-                        });
-                    } else {
-                        // External App Client
-                        thread::spawn(|| {
-                            Self::handle_connection(stream);
-                        });
-                    }
-                }
-                Err(_) => todo!(),
-            }
+            thread::spawn(|| {
+                Self::handle_connection(stream.unwrap());
+            });
         }
     }
 
@@ -53,11 +31,8 @@ Started the TCP Stream on 127.0.0.1:7878
             let result = &buffer[..amt];
 
             let bla = str::from_utf8(&result).unwrap();
-            //println!("{}", bla);
 
-            let response = "HTTP/1.1 200 OK\r\n\r\n";
-
-            stream.write_all(response.as_bytes()).unwrap();
+            stream.write_all(bla.as_bytes()).unwrap();
         }
     }
 }
