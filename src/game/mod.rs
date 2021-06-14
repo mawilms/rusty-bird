@@ -1,6 +1,7 @@
 mod pipe;
 mod player;
 
+use crate::server::packet::Packet;
 use ggez::{
     conf::{self, WindowMode, WindowSetup},
     event::{self, EventHandler, KeyCode, KeyMods},
@@ -10,11 +11,16 @@ use ggez::{
 };
 use rand::Rng;
 use std::{collections::VecDeque, io::Write, net::TcpStream};
+use std::{io::prelude::*, sync::mpsc::Receiver};
+use std::{io::ErrorKind, sync::mpsc};
+use std::{str, thread};
 
 const FRAMERATE: u32 = 60;
 const TUBE_STEP_SIZE: f32 = 250.;
 const GRAVITY: f32 = -0.2;
 const FLAPPING: f32 = 5.;
+const WIDTH: f32 = 864.;
+const HEIGHT: f32 = 512.;
 
 pub struct Game {
     player: player::Player,
@@ -23,11 +29,17 @@ pub struct Game {
     background: Image,
     vertical_speed: f32,
     tcp_client: TcpStream,
+    recipient: Receiver<String>,
 }
 
 impl EventHandler for Game {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while timer::check_update_time(ctx, FRAMERATE) {
+            let command = self.recipient.try_recv().unwrap_or_default();
+            if command == "jump" {
+                self.vertical_speed = FLAPPING;
+            }
+
             self.vertical_speed += GRAVITY;
             self.player.rect.y -= self.vertical_speed;
 
@@ -45,7 +57,7 @@ impl EventHandler for Game {
             // Scoring
             if self.player.rect.x <= self.pipes[0].0.rect.x && !self.pipes[0].0.passed {
                 self.pipes[0].0.passed = true;
-                self.score += 1; // TODO: Currently bugged because the first tube is always in front of the bird. Therefore the game starts at score 1 and the first tube is set to passed=true
+                self.score += 1;
             }
 
             // Collision detection
@@ -74,23 +86,28 @@ impl EventHandler for Game {
                 ));
             }
             let mut coordinates = vec![];
-            for (lower_pipe, upper_pipe) in &self.pipes {
+            for index in 0..3 {
                 coordinates.push((
-                    (lower_pipe.rect.x, lower_pipe.rect.y),
-                    (upper_pipe.rect.x, upper_pipe.rect.y),
-                ));
+                    (
+                        (self.pipes[index].0.rect.x / WIDTH) - (self.player.rect.x / WIDTH),
+                        (self.pipes[index].0.rect.y / HEIGHT) - (self.player.rect.y / HEIGHT),
+                    ),
+                    (
+                        (self.pipes[index].1.rect.x / WIDTH) - (self.player.rect.x / WIDTH),
+                        (self.pipes[index].1.rect.y / HEIGHT) - (self.player.rect.y / HEIGHT),
+                    ),
+                ))
             }
 
-            let position_binary = format!(
-                "Player position: x:{} y:{}
-                Pipes: {:?}",
-                self.player.rect.x, self.player.rect.y, coordinates
-            )
-            .to_string()
-            .as_bytes()
-            .to_owned();
+            let packet = Packet::new(self.player.rect.y / HEIGHT, self.score - 1, coordinates);
 
-            self.tcp_client.write_all(&position_binary).unwrap();
+            let packet_string = serde_json::to_string(&packet)
+                .unwrap()
+                .to_string()
+                .as_bytes()
+                .to_owned();
+
+            self.tcp_client.write_all(&packet_string).unwrap();
         }
         Ok(())
     }
@@ -132,7 +149,17 @@ impl EventHandler for Game {
         let player_draw_param =
             DrawParam::new().dest(glam::Vec2::new(self.player.rect.x, self.player.rect.y));
 
-        draw(ctx, &self.player.assets[0], player_draw_param).expect("Error while drawing player");
+        match self.player.animation_frame {
+            0..=20 => draw(ctx, &self.player.assets[0], player_draw_param)
+                .expect("Error while drawing player"),
+            21..=40 => draw(ctx, &self.player.assets[1], player_draw_param)
+                .expect("Error while drawing player"),
+            41..=60 => draw(ctx, &self.player.assets[2], player_draw_param)
+                .expect("Error while drawing player"),
+            _ => self.player.animation_frame = 0,
+        }
+
+        self.player.animation_frame += 1;
 
         let fps = timer::fps(ctx);
         let fps_display = Text::new(format!("FPS: {}", fps));
@@ -163,7 +190,7 @@ impl Game {
         let mut rng = rand::thread_rng();
 
         let mut config = conf::Conf::new();
-        config.window_mode = WindowMode::default().dimensions(864., 512.);
+        config.window_mode = WindowMode::default().dimensions(WIDTH, HEIGHT);
         config.window_setup = WindowSetup::default().title("Rusty Bird");
 
         let (ref mut ctx, ref mut event_loop) = ContextBuilder::new("Rusty Bird", "Marius Wilms")
@@ -181,8 +208,33 @@ impl Game {
             x_initial_range += TUBE_STEP_SIZE;
         }
         let stream = TcpStream::connect("127.0.0.1:7878").unwrap();
+        stream.set_nonblocking(true).unwrap();
+
+        let (tx, rx) = mpsc::channel();
+
+        let mut command_stream = TcpStream::connect("127.0.0.1:7978").unwrap();
+        command_stream.set_nonblocking(true).unwrap();
+
+        thread::spawn(move || loop {
+            let mut buffer = vec![0; 4];
+
+            match command_stream.read_exact(&mut buffer) {
+                Ok(_) => {
+                    println!("{}", str::from_utf8(&buffer).unwrap().to_string());
+
+                    tx.send(str::from_utf8(&buffer).unwrap().to_string())
+                        .unwrap();
+                }
+                Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),
+                Err(_) => {
+                    println!("connection with server was severed");
+                    break;
+                }
+            }
+        });
 
         let state = &mut Game {
+            recipient: rx,
             tcp_client: stream,
             player: player::Player::new(ctx),
             pipes: tubes,
