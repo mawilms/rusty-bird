@@ -20,7 +20,7 @@ You'll receive the state updates from this stream
 
         for stream in listener.incoming() {
             thread::spawn(|| {
-                Self::handle_connection(stream.unwrap());
+                Self::handle_connection(stream.unwrap(), 256);
             });
         }
     }
@@ -38,14 +38,14 @@ This stream is used to send commands to the game
 
         for stream in listener.incoming() {
             thread::spawn(|| {
-                Self::handle_connection(stream.unwrap());
+                Self::handle_connection(stream.unwrap(), 4);
             });
         }
     }
 
-    fn handle_connection(mut stream: TcpStream) {
-        loop { 
-            let mut buffer = vec![0; 2048];
+    fn handle_connection(mut stream: TcpStream, buffer_size: usize) {
+        loop {
+            let mut buffer = vec![0; buffer_size];
 
             let amt = stream.read(&mut buffer).unwrap();
             let result = &buffer[..amt];

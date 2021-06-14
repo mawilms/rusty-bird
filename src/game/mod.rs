@@ -36,7 +36,9 @@ impl EventHandler for Game {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while timer::check_update_time(ctx, FRAMERATE) {
             let command = self.recipient.try_recv().unwrap_or_default();
-            println!("{}", command);
+            if command == "jump" {
+                self.vertical_speed = FLAPPING;
+            }
 
             self.vertical_speed += GRAVITY;
             self.player.rect.y -= self.vertical_speed;
@@ -213,10 +215,11 @@ impl Game {
             let mut stream = TcpStream::connect("127.0.0.1:7978").unwrap();
 
             loop {
-                let mut buffer = vec![0; 2048];
+                let mut buffer = vec![0; 4];
 
                 let amt = stream.read(&mut buffer).unwrap();
                 let result = &buffer[..amt];
+                println!("{}", str::from_utf8(&result).unwrap().to_string());
 
                 tx.send(str::from_utf8(&result).unwrap().to_string())
                     .unwrap();
