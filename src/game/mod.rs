@@ -19,6 +19,8 @@ const FRAMERATE: u32 = 60;
 const TUBE_STEP_SIZE: f32 = 250.;
 const GRAVITY: f32 = -0.2;
 const FLAPPING: f32 = 5.;
+const WIDTH: f32 = 864.;
+const HEIGHT: f32 = 512.;
 
 pub struct Game {
     player: player::Player,
@@ -85,17 +87,17 @@ impl EventHandler for Game {
             for index in 0..3 {
                 coordinates.push((
                     (
-                        self.pipes[index].0.rect.x - self.player.rect.x,
-                        self.pipes[index].0.rect.y - self.player.rect.y,
+                        (self.pipes[index].0.rect.x / WIDTH) - (self.player.rect.x / WIDTH),
+                        (self.pipes[index].0.rect.y / HEIGHT) - (self.player.rect.y / HEIGHT),
                     ),
                     (
-                        self.pipes[index].1.rect.x - self.player.rect.x,
-                        self.pipes[index].1.rect.y - self.player.rect.y,
+                        (self.pipes[index].1.rect.x / WIDTH) - (self.player.rect.x / WIDTH),
+                        (self.pipes[index].1.rect.y / HEIGHT) - (self.player.rect.y / HEIGHT),
                     ),
                 ))
             }
 
-            let packet = Packet::new(self.player.rect.y, self.score - 1, coordinates);
+            let packet = Packet::new(self.player.rect.y / HEIGHT, self.score - 1, coordinates);
 
             let packet_string = serde_json::to_string(&packet)
                 .unwrap()
@@ -145,7 +147,17 @@ impl EventHandler for Game {
         let player_draw_param =
             DrawParam::new().dest(glam::Vec2::new(self.player.rect.x, self.player.rect.y));
 
-        draw(ctx, &self.player.assets[0], player_draw_param).expect("Error while drawing player");
+        match self.player.animation_frame {
+            0..=20 => draw(ctx, &self.player.assets[0], player_draw_param)
+                .expect("Error while drawing player"),
+            21..=40 => draw(ctx, &self.player.assets[1], player_draw_param)
+                .expect("Error while drawing player"),
+            41..=60 => draw(ctx, &self.player.assets[2], player_draw_param)
+                .expect("Error while drawing player"),
+            _ => self.player.animation_frame = 0,
+        }
+
+        self.player.animation_frame += 1;
 
         let fps = timer::fps(ctx);
         let fps_display = Text::new(format!("FPS: {}", fps));
@@ -176,7 +188,7 @@ impl Game {
         let mut rng = rand::thread_rng();
 
         let mut config = conf::Conf::new();
-        config.window_mode = WindowMode::default().dimensions(864., 512.);
+        config.window_mode = WindowMode::default().dimensions(WIDTH, HEIGHT);
         config.window_setup = WindowSetup::default().title("Rusty Bird");
 
         let (ref mut ctx, ref mut event_loop) = ContextBuilder::new("Rusty Bird", "Marius Wilms")

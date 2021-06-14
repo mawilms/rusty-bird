@@ -1,3 +1,5 @@
+use std::usize;
+
 use ggez::{
     graphics::{Image, Rect},
     Context,
@@ -6,6 +8,7 @@ use ggez::{
 pub struct Player {
     pub rect: Rect,
     pub assets: Vec<Image>,
+    pub animation_frame: usize,
 }
 
 impl Player {
@@ -48,6 +51,7 @@ impl Player {
                 )
                 .expect("Error while creating images"),
             ],
+            animation_frame: 0,
         }
     }
 }
