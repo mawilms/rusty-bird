@@ -28,7 +28,7 @@ You'll receive the state updates from this stream
     pub fn start_command_server() {
         println!(
             "
-Started the TCP Stream on 127.0.0.1:7878
+Started the TCP Stream on 127.0.0.1:7978
 
 This stream is used to send commands to the game
 "
