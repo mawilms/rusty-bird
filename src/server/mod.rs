@@ -53,7 +53,6 @@ This stream is used to send commands to the game
             let data = str::from_utf8(&result).unwrap();
 
             stream.write_all(data.as_bytes()).unwrap();
-            stream.flush().unwrap();
         }
     }
 }
