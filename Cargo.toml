@@ -2,14 +2,15 @@
 
 [package]
 name = "rusty-bird"
-version = "0.0.1"
+version = "0.2.0"
 authors = ["Marius Wilms <info@mariuswilms.dev>"]
 edition = "2018"
 license = "GPL-3.0-only"
 readme = "README.md"
 repository = "https://github.com/mawilms/rusty-bird"
 description = """
-Rusty bird is a simple flappy bird implementation
+Rusty bird is a simple flappy bird implementation that can be controlled by external applications via TCP.
+So the user is able to plug a reinforcement learning agent to it and play the game.
 """
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

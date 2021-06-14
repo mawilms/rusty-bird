@@ -70,7 +70,7 @@ impl EventHandler for Game {
             // Delete pipes that are out of view
             if self.pipes[0].0.rect.x <= -52. {
                 let mut rng = rand::thread_rng();
-                let y_position = rng.gen_range(200..400) as f32;
+                let y_position = rng.gen_range(200, 400) as f32;
                 self.pipes.pop_front();
                 self.pipes.push_back((
                     pipe::Pipe::new(
@@ -184,7 +184,7 @@ impl Game {
         let background_img =
             image::load_from_memory(include_bytes!("./assets/background-night.png"))
                 .expect("loading icon")
-                .to_rgba8();
+                .to_rgba();
         let (bg_width, bg_height) = background_img.dimensions();
 
         let mut rng = rand::thread_rng();
@@ -198,9 +198,9 @@ impl Game {
             .build()?;
 
         let mut tubes = VecDeque::new();
-        let mut x_initial_range = rng.gen_range(600..650) as f32;
+        let mut x_initial_range = rng.gen_range(600, 650) as f32;
         for _ in 0..5 {
-            let y_position = rng.gen_range(200..400) as f32;
+            let y_position = rng.gen_range(200, 400) as f32;
             tubes.push_back((
                 pipe::Pipe::new(ctx, x_initial_range, y_position),
                 pipe::Pipe::new(ctx, x_initial_range, y_position - 450.),
@@ -248,10 +248,10 @@ impl Game {
 
     fn restart_game(&mut self, ctx: &mut Context) {
         let mut rng = rand::thread_rng();
-        let mut x_initial_range = rng.gen_range(600..650) as f32;
+        let mut x_initial_range = rng.gen_range(600, 650) as f32;
         self.pipes.clear();
         for _ in 0..7 {
-            let y_position = rng.gen_range(200..400) as f32;
+            let y_position = rng.gen_range(200, 400) as f32;
             self.pipes.push_back((
                 pipe::Pipe::new(ctx, x_initial_range, y_position),
                 pipe::Pipe::new(ctx, x_initial_range, y_position - 450.),

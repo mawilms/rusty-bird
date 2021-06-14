@@ -1,7 +1,7 @@
 pub mod packet;
 
 use std::io::{prelude::*, ErrorKind};
-use std::net::{TcpListener, TcpStream};
+use std::net::TcpListener;
 use std::sync::mpsc;
 use std::{str, thread};
 
@@ -105,19 +105,6 @@ This stream is used to send commands to the game
                     })
                     .collect::<Vec<_>>();
             }
-        }
-    }
-
-    fn handle_connection(mut stream: TcpStream, buffer_size: usize) {
-        loop {
-            let mut buffer = vec![0; buffer_size];
-
-            let amt = stream.read(&mut buffer).unwrap();
-            let result = &buffer[..amt];
-
-            let data = str::from_utf8(&result).unwrap();
-
-            stream.write_all(data.as_bytes()).unwrap();
         }
     }
 }

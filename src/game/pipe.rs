@@ -14,11 +14,11 @@ impl Pipe {
     pub fn new(ctx: &mut Context, x_pos: f32, y_pos: f32) -> Self {
         let pipe_up_img = image::load_from_memory(include_bytes!("./assets/pipe-green-up.png"))
             .expect("loading icon")
-            .to_rgba8();
+            .to_rgba();
 
         let pipe_down_img = image::load_from_memory(include_bytes!("./assets/pipe-green-down.png"))
             .expect("loading icon")
-            .to_rgba8();
+            .to_rgba();
         let (pipe_width, pipe_height) = pipe_down_img.dimensions();
 
         Self {
