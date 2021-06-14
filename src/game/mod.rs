@@ -10,9 +10,9 @@ use ggez::{
     Context, ContextBuilder, GameResult,
 };
 use rand::Rng;
-use std::sync::mpsc;
 use std::{collections::VecDeque, io::Write, net::TcpStream};
 use std::{io::prelude::*, sync::mpsc::Receiver};
+use std::{io::ErrorKind, sync::mpsc};
 use std::{str, thread};
 
 const FRAMERATE: u32 = 60;
@@ -208,21 +208,28 @@ impl Game {
             x_initial_range += TUBE_STEP_SIZE;
         }
         let stream = TcpStream::connect("127.0.0.1:7878").unwrap();
+        stream.set_nonblocking(true).unwrap();
 
         let (tx, rx) = mpsc::channel();
 
-        thread::spawn(move || {
-            let mut stream = TcpStream::connect("127.0.0.1:7978").unwrap();
+        let mut command_stream = TcpStream::connect("127.0.0.1:7978").unwrap();
+        command_stream.set_nonblocking(true).unwrap();
 
-            loop {
-                let mut buffer = vec![0; 4];
+        thread::spawn(move || loop {
+            let mut buffer = vec![0; 4];
 
-                let amt = stream.read(&mut buffer).unwrap();
-                let result = &buffer[..amt];
-                println!("{}", str::from_utf8(&result).unwrap().to_string());
+            match command_stream.read_exact(&mut buffer) {
+                Ok(_) => {
+                    println!("{}", str::from_utf8(&buffer).unwrap().to_string());
 
-                tx.send(str::from_utf8(&result).unwrap().to_string())
-                    .unwrap();
+                    tx.send(str::from_utf8(&buffer).unwrap().to_string())
+                        .unwrap();
+                }
+                Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),
+                Err(_) => {
+                    println!("connection with server was severed");
+                    break;
+                }
             }
         });
 
