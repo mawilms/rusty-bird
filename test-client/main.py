@@ -6,8 +6,7 @@ if __name__ == '__main__':
         s.connect(("127.0.0.1", 7878))
 
         while True:
-            s.sendall(b'Hello World')
-            time.sleep(5)
-    #     data = s.recv(1024)
-    #
-    # print('Received', repr(data))
+            #s.sendall(b'jump')
+            data = s.recv(256)
+
+            print('Received', repr(data))
