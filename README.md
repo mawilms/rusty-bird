@@ -8,6 +8,8 @@
 
 </div>
 
+**Due to some feedback the state information will be reworked in the next release. Keep in mind that the results of your agents with the current state might not be as good as possible.**
+
 Another Flappy Bird clone? :duck: Rusty bird is more than a Flappy Bird clone. Rusty bird was programmed to make your entry into reinforcement learning as easy as possible. With the help of Rusty Bird you can train your own independent agent to play the game.
 
 Want to build an agent classically in Python?
@@ -97,4 +99,4 @@ Definitely! This project is a great learning experience for me. There are alread
 
 ## License
 
-Rusty Bird is release under the [GNU GPLv3](https://github.com/mawilms/rusty-bird/blob/main/LICENSE)
+Rusty Bird is released under the [GNU GPLv3](https://github.com/mawilms/rusty-bird/blob/main/LICENSE)
